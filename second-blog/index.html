@@ -1,0 +1,107 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="ie=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Second Blog &#183; Lets Code Android</title><meta name=description content><link href=http://example.org/css/katex.min.css rel=stylesheet><link href=http://example.org/css/concated.min.css rel=stylesheet></head><body class=single-body><nav class="nav-bar side-padding"><h1 class=nav-header><a href=http://example.org/ class=nav-text>Lets Code Android</a></h1><div class=hamburger-menu><input class=hamburger-menu-button type=checkbox onclick=hamburgerMenuPressed.call(this)><div class=hamburger-menu-icon><span></span>
+<span></span></div><ul id=menu class=hamburger-menu-overlay><li><a href=http://example.org/ class=hamburger-menu-overlay-link>Home</a></li></ul></div></nav><main class="content side-text-padding"><article class="post dropcase"><header class=post-header><h1 class=post-title>Second Blog</h1><p class=post-date>Posted <time datetime=2022-11-14>Nov 14, 2022</time></p></header><p>Gradle is one of the important files that are present in every Android application project. We use build.gradle file to manage all the dependencies that are required in our application. But all the code inside the Gradle file is written in Groovy programming language and nowadays, we write the code of our application in Kotlin because of its concise, null-safe, and interoperable nature. So, how about using the same Kotlin language for dependency management in our Android application project? Things will be much easier, right?</p><p>So, in this blog, we will learn how to migrate our Android application project from a Groovy-based Gradle system to a Kotlin-based Gradle system with the help of Kotlin DSL. Here is what we are going to learn in this blog:</p><p>How to migrate to Kotlin based Gradle?
+How to have a central dependency management system?
+What are the advantages and disadvantages of migrating to Kotlin based Gradle?
+So, let&rsquo;s get migrated :)</p><p>How to migrate to Kotlin based Gradle?
+From the official documentation:</p><p>Gradle’s Kotlin DSL provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+So, in short, we can leverage the functionality of Kotlin and the code suggestion feature along with other features of the IDEs in our Gradle file also just like any other normal Kotlin file. So, let&rsquo;s perform our first step of migration.</p><p>Replacing a single quote with double-quote
+So, the very first thing that you need to do is changing all the single quotes( &rsquo; &rsquo; ) to double quotes( " " ) in your existing build.gradle file. This is because a Groovy string can be inside a single quote as well as inside a double quote but in Kotlin, only double quotes are allowed for a string. For example:</p><p>// before
+implementation &lsquo;com.mindorks.android:prdownloader:$prdownloader_version&rsquo;
+// after
+implementation &ldquo;com.mindorks.android:prdownloader:$prdownloader_version&rdquo;
+Using function calls and = assignment operator
+In Groovy, while calling a function, there is no need for parentheses but in Kotlin, it is required to call the function by using the parentheses.</p><p>Also, in Groovy, while assigning some value to a variable you can skip the use of = assignment operator but in Kotlin, = assignment operator is a must.</p><p>So, our next step is to replace all the function calls by using the parentheses and all the direct assignments by using the = operator. But in a Gradle file, it is difficult to identify between function call and assignment. So, if you are not sure about these two, then what you can do here is use the function call in all places and if an error comes then simply replace it with the = assignment operator. So, here are a few examples for the use of function call and the = assignment operator.</p><p>// example of function call
+implementation(&ldquo;com.mindorks.android:prdownloader:$prdownloader_version&rdquo;)
+// example of = assignment
+defaultConfig {
+versionName = 3
+}
+Change filename
+Now, we are done with our basic setup. It&rsquo;s time to change the file name because we are going to use Kotlin DSL. So, name all you .gradle file to .gradle.kts file. For example, build.gradle will become build.gradle.kts.</p><p>Using Plugin
+To use plugins in your Gradle file, use the following:</p><p>plugins {
+id(&ldquo;com.google.gms.google-services&rdquo;)
+}
+Or if you are using the legacy apply( ) function, then you can follow the below approach:</p><p>apply(plugin = &ldquo;com.google.gms.google-services&rdquo;)
+Using URLs
+In the Gradle file, you can use the URL like this:</p><p>// before
+maven { url &lsquo;<a href=https://jitpack.io>https://jitpack.io</a>&rsquo; }
+// after
+maven(&ldquo;<a href=https://jitpack.io>https://jitpack.io</a>&rdquo;)
+Using tasks
+Now, to register your task, you need to do this:</p><p>// before
+task clean(type: Delete) {
+delete rootProject.buildDir
+}
+// after
+tasks.register(&ldquo;clean&rdquo;, Delete::class) {
+delete(rootProject.buildDir)
+}
+Using Boolean variables
+To use a boolean variable, you need to use &ldquo;is&rdquo; as a prefix to the variable. But it is always a good practice to use &ldquo;is&rdquo; as a prefix for boolean variables in all programming languages.</p><p>// before
+debuggable false
+// after
+isDebuggable = false
+Using getByName for buildTypes
+To use various build types, you need to use the getByName function:</p><p>// before
+buildTypes {
+debug {
+// &mldr;
+}
+release {<br>// &mldr;
+}
+}
+// after
+buildTypes {
+getByName(&ldquo;debug&rdquo;) {
+// &mldr;
+}
+getByName(&ldquo;release&rdquo;) {
+// &mldr;
+}
+}
+Mapping using mapOf
+To map variables, you need to use the mapOf() function. For example, to add local .jar file dependency to your build.gradle.kts file, you need to use:</p><p>// before
+implementation fileTree(dir: &rsquo;libs&rsquo;, include: [&rsquo;<em>.jar&rsquo;])
+// after
+implementation(fileTree(mapOf(&ldquo;dir&rdquo; to &ldquo;libs&rdquo;, &ldquo;include&rdquo; to listOf("</em>.jar"))))
+Using variables from project-level Gradle file(root project)
+For better dependency management, many developers tend to put the versions of all the dependencies in the root-level build.gradle file and use it in the app-level build.gradle file. So, we can use this like below:</p><p>// in root-level build.gradle file
+val prdownloaderVersion by rootProject.extra(&ldquo;0.6.0&rdquo;)
+// in app-level build.gradle file
+implementation(&ldquo;com.mindorks.android:prdownloader:${rootProject.extra.get(&ldquo;prdownloaderVersion&rdquo;)}&rdquo;)
+Excluding libraries from all dependencies
+To exclude some libraries from all dependencies in Kotlin DSL build.gradle file, use the following:</p><p>configurations {
+all {
+exclude(group = &ldquo;com.google.guava&rdquo;, module = &ldquo;listenablefuture&rdquo;)
+}
+}
+These are some steps that can be used to migrate from a Groovy-based Gradle file to a Kotlin-based Gradle file.</p><p>Thumbnail Image
+30% DISCOUNT NOW
+Android Online Course for Professionals by MindOrks
+Join and learn Dagger, Kotlin, RxJava, MVVM, Architecture Components, Coroutines, Unit Testing and much more.</p><p>Now, it will be quite easier for you to manage the code because now you must be getting auto suggestions, code navigation, and obviously all the awesome features of the Kotlin language.</p><p>But things will be much easier if you have a central dependency management system for your whole app. So, let&rsquo;s learn how to make one.</p><p>How to have a central dependency management system?
+Whenever we run any Gradle file, then it checks for buildSrc and based on that it compiles the code. So, we can take the advantage of this feature/process and can make our dependency files written in Kotlin language.</p><p>So, in the project view, create a new directory named buildSrc in your root directory, and inside the buildSrc directory, make a file name build.gradle.kts and add the below code:</p><p>repositories {
+jcenter()
+}</p><p>plugins {
+<code>kotlin-dsl</code>
+}
+You can remove the repositories { } section based on the requirement of the project. Now, sync the project.</p><p>Now, in the buildSrc directory, create nested directories by entering the name as src/main/java. You can create these directories one by one also. Inside buildSrc/src/main/java, create a new file named Dependencies.kt.</p><p>Inside this Dependencies.kt file, we are going to make objects for different purposes like we can have one object for all the versions, also, we can have one object for all Dependencies, and so on.</p><p>For example:</p><p>object Versions {
+const val recyclerViewVersion = &ldquo;1.1.0&rdquo;
+const val materialLibraryVersion = &ldquo;1.2.1&rdquo;
+}
+object Dependencies {
+const val recyclerView = &ldquo;androidx.recyclerview:recyclerview:${Versions.recyclerViewVersion}&rdquo;
+const val materialDesign = &ldquo;com.google.android.material:material:${Versions.materialLibraryVersion}&rdquo;
+}
+Similarly, you can have other objects also like one object for your default configuration and so on.</p><p>Now, to use these dependencies in your app-level build.gradle file, all you need to do is call it by its name. For example, here is the code of the app-level build.gradle file:</p><p>dependencies {
+implementation(Dependencies.materialDesign)</p><pre><code>implementation(Dependencies.recyclerView)
+</code></pre><p>}
+In this way, you can keep all the dependencies and its version in one place and this code is quite easy to read and maintain.</p><p>We have seen how to migrate from Groovy Gradle to Kotlin Gradle, but there are some disadvantages also of this process. Let&rsquo;s find out.</p><p>What are the advantages and disadvantages of migrating to Kotlin based Gradle?
+Till now, we have seen what are the advantages of using Kotlin DSL in our Gradle file. So, let&rsquo;s summarize it:</p><p>Since you are using Kotlin, then the IDE will provide the auto-suggestion feature for your Gradle file also which is missing till now.
+Code navigation between files becomes easy in Kotlin DSL.
+You can leverage all the functionalities of Kotlin in your Gradle file.
+But, there are a few disadvantages also. Here are some:</p><p>In some cases, Kotlin DSL might be slower than the Groovy one. For example, it can be slower in case of first use, on clean checkouts, or on ephemeral CI agents.
+If you are migrating from Groovy to DSL, then things might look difficult and lengthy for you, but it is worth doing.
+Another disadvantage or you can say prerequisite for using Kotlin DSL in Gradle is that you must run your Gradle with Java 8 or higher versions.
+So, these are some of the advantages and disadvantages of using Kotlin DSL for your Gradle files and it is clear that the advantages are quite more than that of disadvantages.</p><p>We are quite sure that you are going to use and love Kotlin DSL for your Gradle files.</p><p>That&rsquo;s it for this blog. Hope you enjoyed the migration process.</p><p>Show your love by sharing this blog with your fellow developers.</p><p>MindOrks!</p><p>Happy Learning :)</p></article></main><nav class="end-nav side-padding"><a ontouchstart=cardPressed.call(this) ontouchend=cardReleased.call(this) ontouchmove=cardReleased.call(this) href=http://example.org/first-blog/ class="card blog-card bc-next" rel=bookmark><article class=card-body><h2 class=card-title>First Blog</h2><p class=card-text>12 Android blogs you should be following analyzing AndroidWeekly data: Part One The AndroidWeekly email digest is a fantastic way to stay on top of the latest Android news. Each week includes articles from the most popular and influential blogs as well as worthwhile reads from passionate developers. I’m not affiliated with AndroidWeekly, but I have found it very useful over the years and see it as a great way to take snapshots of the Android community overtime.</p><div class="card-subtext muted-text"><p>Posted <time datetime=2022-11-14>Nov 14, 2022</time></p></div></article></a></nav><footer class=side-padding style=background-image:url(http://example.org/img/home-blob-flip.svg)><a href=http://example.org/ class=footer-link><img class=footer-icon src=http://example.org/icons/home.svg alt=Home></a></footer><script defer src=http://example.org/js/katex.min.js></script>
+<script defer src=http://example.org/js/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script src=http://example.org/js/core.min.js></script></body></html>
